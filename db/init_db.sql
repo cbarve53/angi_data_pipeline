@@ -1,0 +1,3 @@
+-- init_db.sql
+CREATE SCHEMA IF NOT EXISTS raw;
+CREATE SCHEMA IF NOT EXISTS marts;

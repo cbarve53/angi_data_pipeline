@@ -1,0 +1,51 @@
+stages:
+  - build
+  - deploy
+  - transform
+  - test
+
+variables:
+  IMAGE: angi_export_app:latest
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t $IMAGE export_app
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl apply -f k8s/minio-namespace.yaml
+    - kubectl apply -f k8s/minio-deployment.yaml
+    - kubectl apply -f k8s/minio-service.yaml
+    - kubectl apply -f k8s/postgres-deployment.yaml
+    - kubectl apply -f k8s/postgres-service.yaml
+  only:
+    - main
+
+transform:
+  stage: transform
+  image: python:3.10
+  script:
+    - pip install dbt-core dbt-postgres
+    - cd dbt_project && dbt deps && dbt run
+  only:
+    - main
+
+test:
+  stage: test
+  image: python:3.10
+  script:
+    - pip install dbt-core dbt-postgres
+    - cd dbt_project && dbt test && dbt docs generate
+  artifacts:
+    paths:
+      - dbt_project/target
+  only:
+    - main

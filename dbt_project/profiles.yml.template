@@ -1,0 +1,13 @@
+# Copy this to ~/.dbt/profiles.yml and edit credentials
+angi_profile:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: angi
+      password: angi_pass
+      dbname: angi
+      schema: analytics
+      threads: 1
