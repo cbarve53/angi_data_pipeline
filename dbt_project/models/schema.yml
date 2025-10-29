@@ -6,8 +6,8 @@ sources:
       - name: raw_posts
 
 models:
-  - name: stg_posts
-    description: "Staging table for raw posts from JSONPlaceholder"
+  - name: stg_posts_incremental
+    description: "Incremental staging model ingesting raw posts"
     columns:
       - name: id
         tests:
@@ -17,7 +17,20 @@ models:
         tests:
           - not_null
 
-  - name: int_posts_enriched
-    description: "Intermediate enriched posts"
-  - name: mart_user_posts
-    description: "User-level aggregates"
+  - name: posts_fact
+    description: "Fact table of posts"
+
+  - name: dim_users
+    description: "Dimension table of users"
+    columns:
+      - name: user_id
+        tests:
+          - not_null
+          - unique
+
+  - name: mart_user_analytics
+    description: "User-level aggregates and metrics"
+    columns:
+      - name: user_id
+        tests:
+          - not_null

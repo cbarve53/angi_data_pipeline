@@ -6,14 +6,16 @@ stages:
 
 variables:
   IMAGE: angi_export_app:latest
+  DOCKER_DRIVER: overlay2
 
 build:
   stage: build
-  image: docker:latest
+  image: docker:24
   services:
     - docker:dind
   script:
     - docker build -t $IMAGE export_app
+    - docker image ls
   only:
     - main
 
@@ -32,9 +34,35 @@ deploy:
 transform:
   stage: transform
   image: python:3.10
+  variables:
+    DB_HOST: postgres
+    DB_PORT: 5432
+    DB_USER: angi
+    DB_PASS: angi_pass
+    DB_NAME: angi
+    DB_SCHEMA: analytics
   script:
     - pip install dbt-core dbt-postgres
-    - cd dbt_project && dbt deps && dbt run
+    - cd dbt_project
+    - |
+      cat > profiles.yml <<EOF
+      angi_profile:
+        target: dev
+        outputs:
+          dev:
+            type: postgres
+            host: ${DB_HOST}
+            port: ${DB_PORT}
+            user: ${DB_USER}
+            password: ${DB_PASS}
+            dbname: ${DB_NAME}
+            schema: ${DB_SCHEMA}
+            threads: 1
+      EOF
+    - mv profiles.yml ~/.dbt/profiles.yml
+    - dbt deps
+    - dbt seed --profiles-dir .
+    - dbt run --profiles-dir .
   only:
     - main
 
@@ -43,7 +71,9 @@ test:
   image: python:3.10
   script:
     - pip install dbt-core dbt-postgres
-    - cd dbt_project && dbt test && dbt docs generate
+    - cd dbt_project
+    - dbt test
+    - dbt docs generate
   artifacts:
     paths:
       - dbt_project/target

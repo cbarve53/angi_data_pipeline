@@ -1,0 +1,11 @@
+# values.yaml - example values for Minio and Postgres
+minio:
+  accessKey: minioadmin
+  secretKey: minioadmin
+  replicas: 1
+
+postgres:
+  user: angi
+  password: angi_pass
+  db: angi
+  replicas: 1

@@ -1,0 +1,32 @@
+# templates/minio-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+spec:
+  replicas: {{ .Values.minio.replicas }}
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: minio/minio:RELEASE.2025-01-01T00-00-00Z
+        args: ["server", "/data"]
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: "{{ .Values.minio.accessKey }}"
+        - name: MINIO_SECRET_KEY
+          value: "{{ .Values.minio.secretKey }}"
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        emptyDir: {}
